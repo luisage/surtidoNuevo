@@ -427,7 +427,7 @@ if($ref["granel2"]=='0'){$cantidad=1;}
 //fin 6
 // 7 verifica que exista el QR y con estatus 1 
 if($existe>=1){/////isnull(c.qrCompleto,0)qrCompleto
-	$codigox=mssql_query("select c.id,c.refaccionidfk,r.clave,c.codigo,isnull(c.ubicacionidfk,0)ubicacionidfk from ccomponente c inner join crefaccion r on (r.refaccionid=c.refaccionidfk)
+	$codigox=mssql_query("select c.id,c.refaccionidfk,r.clave,c.codigo,isnull(c.ubicacionidfk,0)ubicacionidfk,isnull(c.estatusMaterial,'')estatusMaterial from ccomponente c inner join crefaccion r on (r.refaccionid=c.refaccionidfk)
 where codigo='".$codCompleto."' and estatus='1' ");
 	$exiCod=mssql_num_rows($codigox);
 	if($exiCod==0){$json['piezas2'][]=array( 'surtido'=> 'no3'); print (json_encode($json)); return -1;}
@@ -527,10 +527,17 @@ if($valEntra==1){$ins=mssql_query("insert into registroSurtido values('".$ubicac
 //9 trae datos del pedido estatus departamento tecnico ingresa a historialSolRefaccion y HistorialSurtido
 	$estPedx=mssql_query("select estatusidfk,isnull(departamentoidfk,0)departamentoidfk,tecnicoidfk,estatus from tsolicitud_refaccion where solicitud_refaccionid=".$solicitud." ");
 	$estPed=mssql_fetch_array($estPedx);
-	
 	$pedidoVenta=""; $tipodeVenta="";
 	if($estPed["estatus"]=='Venta Zitro'){$pedidoVenta="SI"; $tipodeVenta="Venta Zitro";}
 	if($estPed["estatus"]=='Venta ODN'){$pedidoVenta="SI"; $tipodeVenta="Venta ODN";}
+	////inicio material nuevo
+	if($pedidoVenta=="SI" && $ref["granel2"]=='0'){
+		if($codigo["estatusMaterial"]!=138){
+			$json['piezas2'][]=array( 'surtido'=> 'no3'); print (json_encode($json)); return -1;
+		}
+
+	}
+	////fin material nuevo
 	
 	if($estPed["estatusidfk"]==30){mssql_query("update tsolicitud_refaccion set estatusidfk=115 where solicitud_refaccionid=$solicitud ");
 	mssql_query("insert into historialSolRefaccion values(".$solicitud.",115,getdate(),".$usuarioID.") ");}
